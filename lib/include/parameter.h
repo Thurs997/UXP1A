@@ -12,8 +12,8 @@ class ParameterBase
 {
 public:
     virtual ~ParameterBase() {}
-    template<class T> const T& get() const; //to be implimented after Parameter
-    template<class T, class U> void setValue(const U& rhs); //to be implimented after Parameter
+    template<class T> const T& get() const;
+    template<class T, class U> void setValue(const U& rhs);
 };
 
 template <typename T>
@@ -27,7 +27,6 @@ private:
     T value;
 };
 
-//Here's the trick: dynamic_cast rather than virtual
 template<class T> const T& ParameterBase::get() const
 { return dynamic_cast<const Parameter<T>&>(*this).get(); }
 template<class T, class U> void ParameterBase::setValue(const U& rhs)
