@@ -17,17 +17,19 @@ std::string TupleSerializer::binToString(byte binaryArray[], int & position){
 	return str;
 }
 
-int TupleSerializer::binToInt(byte binaryArray[], int position){
+int TupleSerializer::binToInt(byte binaryArray[], int & position){
 	byte byteArg[] = {	binaryArray[position], binaryArray[position+1],
 						binaryArray[position+2], binaryArray[position+3]};
 	int const * arg = reinterpret_cast<int const *>(&byteArg);
+	position += sizeof(int);
 	return *arg;
 }
 
-float TupleSerializer::binToFloat(byte binaryArray[], int position){
+float TupleSerializer::binToFloat(byte binaryArray[], int & position){
 	byte byteArg[] = {	binaryArray[position], binaryArray[position+1],
 						binaryArray[position+2], binaryArray[position+3]};
 	float const * arg = reinterpret_cast<float const *>(&byteArg);
+	position += sizeof(float);
 	return *arg;
 }
 

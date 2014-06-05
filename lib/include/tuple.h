@@ -42,17 +42,16 @@ private:
 	T getArg(int index){
 		return (params[index])->get<T>();
 	}
-	int addStringFromBinary(byte binaryArray[], int position);
-	void addIntFromBinary(byte binaryArray[], int position);
-	void addFloatFromBinary(byte binaryArray[], int position);
+	//toBinary
+	int addStringFromBinary(byte binaryArray[], int & position);
+	void addIntFromBinary(byte binaryArray[], int & position);
+	void addFloatFromBinary(byte binaryArray[], int & position);
+	//fromBinary
 	unsigned int binaryLength();
 	unsigned int oneArgLength(ParameterBase *);
 	unsigned int createBinaryMask();
 	void copyBinaryContent(std::vector<byte> * tuple);
 	void copyBinaryField(std::vector<byte> * tuple, ParameterBase * field);
-	void copyStringField(std::vector<byte> * tuple, std::string stringField);
-	void copyIntField(std::vector<byte> * tuple, int intField);
-	void copyFloatField(std::vector<byte> * tuple, float floatField);
 };
 
 #endif /* TUPLE_H_ */

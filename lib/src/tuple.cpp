@@ -1,7 +1,4 @@
 #include "tuple.h"
-#include <string>
-#include <cstdlib>
-#include <typeinfo>
 
 Tuple * Tuple::fromBinary(byte binaryArray[]){
 	Tuple * tuple = new Tuple();
@@ -11,29 +8,26 @@ Tuple * Tuple::fromBinary(byte binaryArray[]){
 	int position = 8;
 	while(((*mask & (0xC << shift)) > 0) && shift >= 0){
 		if(((*mask >> shift) & 0xC) == 0xC)
-			position = tuple->addStringFromBinary(binaryArray, position);
+			tuple->addStringFromBinary(binaryArray, position);
 		else if(((*mask >> shift) & 0xC) == 0x4){
 			tuple->addIntFromBinary(binaryArray, position);
-			position += sizeof(int);
 		} else {
 			tuple->addFloatFromBinary(binaryArray, position);
-			position += sizeof(float);
 		}
 		shift -= 2;
 	}
 	return tuple;
 }
 
-int Tuple::addStringFromBinary(byte binaryArray[], int position){
+int Tuple::addStringFromBinary(byte binaryArray[], int & position){
 	addString(binToString(binaryArray, position));
-	return position;
 }
 
-void Tuple::addIntFromBinary(byte binaryArray[], int position){
+void Tuple::addIntFromBinary(byte binaryArray[], int & position){
 	addInteger(binToInt(binaryArray, position));
 }
 
-void Tuple::addFloatFromBinary(byte binaryArray[], int position){
+void Tuple::addFloatFromBinary(byte binaryArray[], int & position){
 	addFloat(binToFloat(binaryArray, position));
 }
 
