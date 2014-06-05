@@ -58,21 +58,21 @@ void Tuple::addFloatFromBinary(byte binaryArray[], int position){
 }
 
 byte * Tuple::toBinary(){
-	byte * binaryTuple = (byte *) malloc(8 * sizeof (unsigned char));
+	std::vector<byte> * binaryTuple = new std::vector<byte>();
 	unsigned int length = 8 + binaryLength();
 	byte const * bLength = reinterpret_cast<byte const *>(&length);
-	binaryTuple[0] = bLength[0];
-	binaryTuple[1] = bLength[1];
-	binaryTuple[2] = bLength[2];
-	binaryTuple[3] = bLength[3];
+	binaryTuple->push_back(bLength[0]);
+	binaryTuple->push_back(bLength[1]);
+	binaryTuple->push_back(bLength[2]);
+	binaryTuple->push_back(bLength[3]);
 	unsigned int binaryMask = createBinaryMask();
 	byte const * bMask = reinterpret_cast<byte const *>(&binaryMask);
-	binaryTuple[4] = bMask[0];
-	binaryTuple[5] = bMask[1];
-	binaryTuple[6] = bMask[2];
-	binaryTuple[7] = bMask[3];
+	binaryTuple->push_back(bMask[0]);
+	binaryTuple->push_back(bMask[1]);
+	binaryTuple->push_back(bMask[2]);
+	binaryTuple->push_back(bMask[3]);
 	copyBinaryContent(binaryTuple);
-	return binaryTuple;
+	return &(*binaryTuple)[0];
 }
 
 unsigned int Tuple::binaryLength(){
@@ -118,51 +118,41 @@ unsigned int Tuple::createBinaryMask(){
 	return mask;
 }
 
-void Tuple::copyBinaryContent(byte * tuple){
-	int size = 8;
+void Tuple::copyBinaryContent(std::vector<byte> * tuple){
 	std::vector<ParameterBase*>::iterator it = params.begin();
 	for(; it != params.end(); ++it)
-		size += copyBinaryField(tuple, *it, size);
+		copyBinaryField(tuple, *it);
 }
 
-int Tuple::copyBinaryField(byte * tuple, ParameterBase * field, int size){
+void Tuple::copyBinaryField(std::vector<byte> * tuple, ParameterBase * field){
 	try{
-		std::string stringField = field->get<std::string>();
-		return copyStringField(tuple, stringField, size);
+		copyStringField(tuple, field->get<std::string>());
 	} catch (std::bad_cast& bc) {
 		try{
-			int intField = field->get<int>();
-			copyIntField(tuple, intField, size);
-			return sizeof(int);
+			copyIntField(tuple, field->get<int>());
 		} catch (std::bad_cast& bc) {
-			float floatField = field->get<float>();
-			copyFloatField(tuple, floatField, size);
-			return sizeof(float);
+			copyFloatField(tuple, field->get<float>());
 		}
 	}
 }
 
-int Tuple::copyStringField(byte * tuple, std::string stringField, int size){
+void Tuple::copyStringField(std::vector<byte> * tuple, std::string stringField){
 	const char * charField = stringField.c_str();
-	tuple = (byte *) realloc(tuple, size + stringField.size()+1);
-	for(unsigned int i = size; i < size + stringField.size()+1; i++)
-		tuple[i] = charField[i-size];
-	return stringField.size()+1;
+	for(unsigned int i = 0; i < stringField.size()+1; ++i)
+		tuple->push_back(charField[i]);
 }
-void Tuple::copyIntField(byte * tuple, int intField, int size){
-	tuple = (byte *) realloc(tuple, size + sizeof(int));
+void Tuple::copyIntField(std::vector<byte> * tuple, int intField){
 	byte const * p = reinterpret_cast<byte const *>(&intField);
-	tuple[size] = p[0];
-	tuple[size+1] = p[1];
-	tuple[size+2] = p[2];
-	tuple[size+3] = p[3];
+	tuple->push_back(p[0]);
+	tuple->push_back(p[1]);
+	tuple->push_back(p[2]);
+	tuple->push_back(p[3]);
 
 }
-void Tuple::copyFloatField(byte * tuple, float floatField, int size){
-	tuple = (byte *) realloc(tuple, size + sizeof(float));
+void Tuple::copyFloatField(std::vector<byte> * tuple, float floatField){
 	byte const * p = reinterpret_cast<byte const *>(&floatField);
-	tuple[size] = p[0];
-	tuple[size+1] = p[1];
-	tuple[size+2] = p[2];
-	tuple[size+3] = p[3];
+	tuple->push_back(p[0]);
+	tuple->push_back(p[1]);
+	tuple->push_back(p[2]);
+	tuple->push_back(p[3]);
 }

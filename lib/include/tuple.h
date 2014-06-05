@@ -39,11 +39,11 @@ private:
 	unsigned int binaryLength();
 	unsigned int oneArgLength(ParameterBase *);
 	unsigned int createBinaryMask();
-	void copyBinaryContent(byte * tuple);
-	int copyBinaryField(byte * tuple, ParameterBase * field, int size);
-	int copyStringField(byte * tuple, std::string stringField, int size);
-	void copyIntField(byte * tuple, int intField, int size);
-	void copyFloatField(byte * tuple, float floatField, int size);
+	void copyBinaryContent(std::vector<byte> * tuple);
+	void copyBinaryField(std::vector<byte> * tuple, ParameterBase * field);
+	void copyStringField(std::vector<byte> * tuple, std::string stringField);
+	void copyIntField(std::vector<byte> * tuple, int intField);
+	void copyFloatField(std::vector<byte> * tuple, float floatField);
 };
 
 #endif /* TUPLE_H_ */
