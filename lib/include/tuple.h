@@ -3,10 +3,9 @@
 #include <string>
 #include <vector>
 #include "parameter.h"
+#include "tupleSerializer.h"
 
-typedef unsigned char byte;
-
-class Tuple {
+class Tuple : TupleSerializer {
 private:
 	std::vector<ParameterBase*> params;
 public:

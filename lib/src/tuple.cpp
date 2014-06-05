@@ -1,17 +1,7 @@
-/*
- * tuple.cpp
- *
- *  Created on: 1 cze 2014
- *      Author: Łukasz Kamiński
- */
 #include "tuple.h"
 #include <string>
 #include <cstdlib>
 #include <typeinfo>
-
-Tuple::Tuple(){
-
-}
 
 Tuple * Tuple::fromBinary(byte binaryArray[]){
 	Tuple * tuple = new Tuple();
@@ -35,26 +25,16 @@ Tuple * Tuple::fromBinary(byte binaryArray[]){
 }
 
 int Tuple::addStringFromBinary(byte binaryArray[], int position){
-	int i;
-	std::string str;
-	for(i = position; binaryArray[i] != 0; ++i)
-		str += binaryArray[i];
-	addString(str);
-	return i+1;
+	addString(binToString(binaryArray, position));
+	return position;
 }
 
 void Tuple::addIntFromBinary(byte binaryArray[], int position){
-	byte byteArg[] = {	binaryArray[position], binaryArray[position+1],
-						binaryArray[position+2], binaryArray[position+3]};
-	int const * arg = reinterpret_cast<int const *>(&byteArg);
-	addInteger(*arg);
+	addInteger(binToInt(binaryArray, position));
 }
 
 void Tuple::addFloatFromBinary(byte binaryArray[], int position){
-	byte byteArg[] = {	binaryArray[position], binaryArray[position+1],
-						binaryArray[position+2], binaryArray[position+3]};
-	float const * arg = reinterpret_cast<float const *>(&byteArg);
-	addFloat(*arg);
+	addFloat(binToFloat(binaryArray, position));
 }
 
 byte * Tuple::toBinary(){
@@ -126,33 +106,12 @@ void Tuple::copyBinaryContent(std::vector<byte> * tuple){
 
 void Tuple::copyBinaryField(std::vector<byte> * tuple, ParameterBase * field){
 	try{
-		copyStringField(tuple, field->get<std::string>());
+		addStringToBin(tuple, field->get<std::string>());
 	} catch (std::bad_cast& bc) {
 		try{
-			copyIntField(tuple, field->get<int>());
+			addIntToBin(tuple, field->get<int>());
 		} catch (std::bad_cast& bc) {
-			copyFloatField(tuple, field->get<float>());
+			addFloatToBin(tuple, field->get<float>());
 		}
 	}
-}
-
-void Tuple::copyStringField(std::vector<byte> * tuple, std::string stringField){
-	const char * charField = stringField.c_str();
-	for(unsigned int i = 0; i < stringField.size()+1; ++i)
-		tuple->push_back(charField[i]);
-}
-void Tuple::copyIntField(std::vector<byte> * tuple, int intField){
-	byte const * p = reinterpret_cast<byte const *>(&intField);
-	tuple->push_back(p[0]);
-	tuple->push_back(p[1]);
-	tuple->push_back(p[2]);
-	tuple->push_back(p[3]);
-
-}
-void Tuple::copyFloatField(std::vector<byte> * tuple, float floatField){
-	byte const * p = reinterpret_cast<byte const *>(&floatField);
-	tuple->push_back(p[0]);
-	tuple->push_back(p[1]);
-	tuple->push_back(p[2]);
-	tuple->push_back(p[3]);
 }
