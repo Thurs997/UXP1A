@@ -13,21 +13,60 @@ Tuple::Tuple(){
 
 }
 
-Tuple Tuple::fromBinary(byte binaryArray[]){
-	Tuple t;
-	return t;
+Tuple * Tuple::fromBinary(byte binaryArray[]){
+	Tuple * tuple = new Tuple();
+	byte byteMask[] = {binaryArray[4], binaryArray[5], binaryArray[6], binaryArray[7]};
+	unsigned int const * mask = reinterpret_cast<unsigned int const *>(&byteMask);
+	int shift = 28;
+	int position = 8;
+	while(((*mask & (0xC << shift)) > 0) && shift >= 0){
+		if(((*mask >> shift) & 0xC) == 0xC)
+			position = tuple->addStringFromBinary(binaryArray, position);
+		else if(((*mask >> shift) & 0xC) == 0x4){
+			tuple->addIntFromBinary(binaryArray, position);
+			position += sizeof(int);
+		} else {
+			tuple->addFloatFromBinary(binaryArray, position);
+			position += sizeof(float);
+		}
+		shift -= 2;
+	}
+	return tuple;
+}
+
+int Tuple::addStringFromBinary(byte binaryArray[], int position){
+	int i;
+	std::string str;
+	for(i = position; binaryArray[i] != 0; ++i)
+		str += binaryArray[i];
+	addString(str);
+	return i+1;
+}
+
+void Tuple::addIntFromBinary(byte binaryArray[], int position){
+	byte byteArg[] = {	binaryArray[position], binaryArray[position+1],
+						binaryArray[position+2], binaryArray[position+3]};
+	int const * arg = reinterpret_cast<int const *>(&byteArg);
+	addInteger(*arg);
+}
+
+void Tuple::addFloatFromBinary(byte binaryArray[], int position){
+	byte byteArg[] = {	binaryArray[position], binaryArray[position+1],
+						binaryArray[position+2], binaryArray[position+3]};
+	float const * arg = reinterpret_cast<float const *>(&byteArg);
+	addFloat(*arg);
 }
 
 byte * Tuple::toBinary(){
 	byte * binaryTuple = (byte *) malloc(8 * sizeof (unsigned char));
 	unsigned int length = 8 + binaryLength();
-	unsigned char const * bLength = reinterpret_cast<unsigned char const *>(&length);
+	byte const * bLength = reinterpret_cast<byte const *>(&length);
 	binaryTuple[0] = bLength[0];
 	binaryTuple[1] = bLength[1];
 	binaryTuple[2] = bLength[2];
 	binaryTuple[3] = bLength[3];
 	unsigned int binaryMask = createBinaryMask();
-	unsigned char const * bMask = reinterpret_cast<unsigned char const *>(&binaryMask);
+	byte const * bMask = reinterpret_cast<byte const *>(&binaryMask);
 	binaryTuple[4] = bMask[0];
 	binaryTuple[5] = bMask[1];
 	binaryTuple[6] = bMask[2];
@@ -112,7 +151,7 @@ int Tuple::copyStringField(byte * tuple, std::string stringField, int size){
 }
 void Tuple::copyIntField(byte * tuple, int intField, int size){
 	tuple = (byte *) realloc(tuple, size + sizeof(int));
-	unsigned char const * p = reinterpret_cast<unsigned char const *>(&intField);
+	byte const * p = reinterpret_cast<byte const *>(&intField);
 	tuple[size] = p[0];
 	tuple[size+1] = p[1];
 	tuple[size+2] = p[2];
@@ -121,7 +160,7 @@ void Tuple::copyIntField(byte * tuple, int intField, int size){
 }
 void Tuple::copyFloatField(byte * tuple, float floatField, int size){
 	tuple = (byte *) realloc(tuple, size + sizeof(float));
-	unsigned char const * p = reinterpret_cast<unsigned char const *>(&floatField);
+	byte const * p = reinterpret_cast<byte const *>(&floatField);
 	tuple[size] = p[0];
 	tuple[size+1] = p[1];
 	tuple[size+2] = p[2];

@@ -17,9 +17,8 @@ public: //private:
 	std::vector<ParameterBase*> params;
 public:
 	Tuple();
-	static Tuple fromBinary(byte binaryArray[]);
+	static Tuple * fromBinary(byte binaryArray[]);
 	byte * toBinary();
-public:
 	void addString(std::string arg){
 		addArg<std::string>(arg);
 	}
@@ -34,6 +33,9 @@ private:
 	void addArg(T arg) {
 		params.push_back(new Parameter<T>(arg));
 	}
+	int addStringFromBinary(byte binaryArray[], int position);
+	void addIntFromBinary(byte binaryArray[], int position);
+	void addFloatFromBinary(byte binaryArray[], int position);
 	unsigned int binaryLength();
 	unsigned int oneArgLength(ParameterBase *);
 	unsigned int createBinaryMask();
