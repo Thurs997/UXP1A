@@ -1,7 +1,4 @@
 #include "tupleTemplate.h"
-#include <cstdio>
-#include <time.h>
-#include <cstdlib>
 
 TupleTemplate * TupleTemplate::fromBinary(byte binaryArray[]){
 	byte byteMask[] = {binaryArray[4], binaryArray[5], binaryArray[6], binaryArray[7]};
@@ -49,6 +46,8 @@ Quantifier TupleTemplate::getQuantifierFromByte(byte byteQuantifier){
 }
 
 byte * TupleTemplate::toBinary(int & size){
+	if(semKey == -1)
+		createSemaphore();
 	std::vector<byte> * binaryTuple = new std::vector<byte>();
 	unsigned int length = 8 + sizeof(key_t) + binaryLength();
 	byte const * bLength = reinterpret_cast<byte const *>(&length);
@@ -67,7 +66,10 @@ byte * TupleTemplate::toBinary(int & size){
 }
 
 void TupleTemplate::createSemaphore(){
-	semKey = ftok(".", rand()%10000);
+	timeval time;
+	gettimeofday(&time, NULL);
+	long long microSeconds = (time.tv_sec * 1000000) + time.tv_usec;
+	semKey = ftok(".", microSeconds);
 	semId = semget( semKey, 1, IPC_CREAT | IPC_EXCL | 0660 );
 }
 
@@ -76,12 +78,26 @@ void TupleTemplate::initSemaphore(key_t key){
 	semId = semget( key, 1, 0660 );
 }
 
+void TupleTemplate::deleteSemaphore(){
+	semctl(semId, 0, IPC_RMID);
+	semKey = -1;
+}
+
 int TupleTemplate::semWait(int timeout){
 	struct sembuf sem_lock = { 0, -1, 0 };
 	timespec time;
 	time.tv_sec = timeout;
 	time.tv_nsec = 0;
-	return semtimedop(semId, &sem_lock, 1, &time);
+	int val = semtimedop(semId, &sem_lock, 1, &time);
+	deleteSemaphore();
+	return val;
+}
+
+int TupleTemplate::semPost(){
+	struct sembuf sem_unlock = { 0, 1, 0 };
+	int val = semop(semId, &sem_unlock, 1);
+	semKey = -1;
+	return val;
 }
 
 unsigned int TupleTemplate::binaryLength(){

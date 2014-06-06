@@ -1,12 +1,4 @@
-/*
- * tupleSerializer.cpp
- *
- *  Created on: Jun 5, 2014
- *      Author: kokoss
- */
-
 #include "tupleSerializer.h"
-#include <iostream>
 
 std::string TupleSerializer::binToString(byte binaryArray[], int & position){
 	int i;

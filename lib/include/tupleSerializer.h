@@ -1,10 +1,3 @@
-/*
- * tupleSerializer.h
- *
- *  Created on: Jun 5, 2014
- *      Author: kokoss
- */
-
 #ifndef TUPLESERIALIZER_H_
 #define TUPLESERIALIZER_H_
 #include <string>

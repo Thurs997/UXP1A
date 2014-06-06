@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
+#include <sys/time.h>
 
 enum Quantifier{
 	ANY = 0x01, EQUAL = 0x02, LESS = 0x03, MORE = 0x04, LESS_OR_EQUAL = 0x05, MORE_OR_EQUAL = 0x06
@@ -50,12 +51,13 @@ private:
 	key_t semKey;
 	int semId;
 public:
-	TupleTemplate(){ createSemaphore(); }
+	TupleTemplate() : semKey(-1), semId(-1) { }
 	TupleTemplate(key_t key){ initSemaphore(key); }
 	~TupleTemplate(){ }
 	static TupleTemplate * fromBinary(byte binaryArray[]);
 	byte * toBinary(int & size);
 	int semWait(int timeout);
+	int semPost();
 	key_t getSemKey(){ return semKey; };
 	void add(TupleTemplateArg arg){
 		params.push_back(arg);
@@ -71,6 +73,7 @@ private:
 	//toBinary
 	void createSemaphore();
 	void initSemaphore(key_t key);
+	void deleteSemaphore();
 	void addStringArgFromBinary(byte binaryArray[], int & position);
 	void addIntegerArgFromBinary(byte binaryArray[], int & position);
 	void addFloatArgFromBinary(byte binaryArray[], int & position);
