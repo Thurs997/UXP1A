@@ -6,6 +6,8 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/time.h>
+#include <sys/unistd.h>
+#include <sys/syscall.h>
 
 enum Quantifier{
 	ANY = 0x01, EQUAL = 0x02, LESS = 0x03, MORE = 0x04, LESS_OR_EQUAL = 0x05, MORE_OR_EQUAL = 0x06
