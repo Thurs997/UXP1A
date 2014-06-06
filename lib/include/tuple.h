@@ -5,7 +5,7 @@
 #include "parameter.h"
 #include "tupleSerializer.h"
 
-class Tuple : TupleSerializer {
+class Tuple : public TupleSerializer {
 private:
 	std::vector<ParameterBase*> params;
 public:
@@ -34,6 +34,7 @@ public:
 	int size() {
 		return params.size();
 	}
+	unsigned int createBinaryMask();
 private:
 	template<typename T>
 	void addArg(T arg) {
@@ -50,7 +51,6 @@ private:
 	//fromBinary
 	unsigned int binaryLength();
 	unsigned int oneArgLength(ParameterBase *);
-	unsigned int createBinaryMask();
 	void copyBinaryContent(std::vector<byte> * tuple);
 	void copyBinaryField(std::vector<byte> * tuple, ParameterBase * field);
 };

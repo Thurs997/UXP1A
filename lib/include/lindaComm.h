@@ -8,19 +8,24 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
 
 class LindaComm {
 public:
-	LindaComm() {}
+	LindaComm() { srand(time(0)); }
 
 // INPUT,READ //
 public:
-	void tupleInput(TupleTemplate tupleTemplate, int timeout);
-	void tupleRead(TupleTemplate tupleTemplate, int timeout);
+	Tuple * tupleInput(TupleTemplate tupleTemplate, int timeout);
+	Tuple * tupleRead(TupleTemplate tupleTemplate, int timeout);
 private:
-	bool findTupleMatchingTemplate(TupleTemplate tupleTemplate);
+	Tuple * tupleGet(TupleTemplate tupleTemplate, int timeout, bool remove);
+	Tuple * findTupleMatchingTemplate(TupleTemplate tupleTemplate, bool remove);
 public:
 	void saveTupleTemplate(TupleTemplate tupleTemplate);
+	void removeTupleTemplate(TupleTemplate tupleTemplate);
 
 // OUTPUT //
 public:
@@ -30,9 +35,19 @@ private:
 public:
 	void saveTuple(Tuple tuple);
 
+// UTIL //
+private:
+	bool matchBinaryMasks(int fd, TupleTemplate tupleTemplate);
+	bool matchBinaryMasks(int fd, Tuple tuple);
+	Tuple * matchTupleToTupleTemplate(int fd, unsigned int tupleSize, TupleTemplate tupleTemplate, bool remove);
+	bool matchTupleFieldToTupleTemplateField(Tuple * tuple, TupleTemplate tupleTemplate, int i);
+	bool matchStringWithQuantifier(std::string tupleArg, std::string tupleTemplateArg, Quantifier quantifier);
+	bool matchIntegerWithQuantifier(int tupleArg, int tupleTemplateArg, Quantifier quantifier);
+	bool matchFloatWithQuantifier(float tupleArg, float tupleTemplateArg, Quantifier quantifier);
 // FS //
 private:
 	int getFile(const char * envName);
+	const char * getDefaultFileName(const char * envName);
 	void closeFile(int fd);
 };
 

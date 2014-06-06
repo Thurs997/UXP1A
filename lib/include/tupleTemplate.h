@@ -2,6 +2,9 @@
 #define TUPLETEMPLATE_H_
 #include "tupleSerializer.h"
 #include "parameter.h"
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
 
 enum Quantifier{
 	ANY = 0x01, EQUAL = 0x02, LESS = 0x03, MORE = 0x04, LESS_OR_EQUAL = 0x05, MORE_OR_EQUAL = 0x06
@@ -41,14 +44,19 @@ struct TupleTemplateArg{
 	}
 };
 
-class TupleTemplate : TupleSerializer {
+class TupleTemplate : public TupleSerializer {
 private:
 	std::vector<TupleTemplateArg> params;
+	key_t semKey;
+	int semId;
 public:
-	TupleTemplate(){ }
+	TupleTemplate(){ createSemaphore(); }
+	TupleTemplate(key_t key){ initSemaphore(key); }
 	~TupleTemplate(){ }
 	static TupleTemplate * fromBinary(byte binaryArray[]);
 	byte * toBinary(int & size);
+	int semWait(int timeout);
+	key_t getSemKey(){ return semKey; };
 	void add(TupleTemplateArg arg){
 		params.push_back(arg);
 	}
@@ -58,8 +66,11 @@ public:
 	int size() {
 		return params.size();
 	}
+	unsigned int createBinaryMask();
 private:
 	//toBinary
+	void createSemaphore();
+	void initSemaphore(key_t key);
 	void addStringArgFromBinary(byte binaryArray[], int & position);
 	void addIntegerArgFromBinary(byte binaryArray[], int & position);
 	void addFloatArgFromBinary(byte binaryArray[], int & position);
@@ -67,7 +78,6 @@ private:
 	//fromBinary
 	unsigned int binaryLength();
 	unsigned int oneArgLength(TupleTemplateArg arg);
-	unsigned int createBinaryMask();
 	void copyBinaryContent(std::vector<byte> * tupleTemplate);
 	void copyBinaryArg(std::vector<byte> * tupleTemplate, TupleTemplateArg arg);
 	void addQuantifierToBin(std::vector<byte> * tupleTemplate, Quantifier quantifier);

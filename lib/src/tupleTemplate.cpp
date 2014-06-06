@@ -1,11 +1,18 @@
 #include "tupleTemplate.h"
+#include <cstdio>
+#include <time.h>
+#include <cstdlib>
 
 TupleTemplate * TupleTemplate::fromBinary(byte binaryArray[]){
-	TupleTemplate * tupleTemplate = new TupleTemplate();
 	byte byteMask[] = {binaryArray[4], binaryArray[5], binaryArray[6], binaryArray[7]};
 	unsigned int const * mask = reinterpret_cast<unsigned int const *>(&byteMask);
+	std::vector<byte> bSemKey;
+	for(unsigned int i=8; i<8+sizeof(key_t); ++i)
+		bSemKey.push_back(binaryArray[i]);
+	key_t * key = reinterpret_cast<key_t *>(&bSemKey[0]);
+	TupleTemplate * tupleTemplate = new TupleTemplate(*key);
 	int shift = 28;
-	int position = 8;
+	int position = 8+sizeof(key_t);
 	while(((*mask & (0xC << shift)) > 0) && shift >= 0){
 		if(((*mask >> shift) & 0xC) == 0xC)
 			tupleTemplate->addStringArgFromBinary(binaryArray, position);
@@ -43,21 +50,38 @@ Quantifier TupleTemplate::getQuantifierFromByte(byte byteQuantifier){
 
 byte * TupleTemplate::toBinary(int & size){
 	std::vector<byte> * binaryTuple = new std::vector<byte>();
-	unsigned int length = 8 + binaryLength();
+	unsigned int length = 8 + sizeof(key_t) + binaryLength();
 	byte const * bLength = reinterpret_cast<byte const *>(&length);
-	binaryTuple->push_back(bLength[0]);
-	binaryTuple->push_back(bLength[1]);
-	binaryTuple->push_back(bLength[2]);
-	binaryTuple->push_back(bLength[3]);
+	for(unsigned int i=0; i<sizeof(unsigned int); i++)
+		binaryTuple->push_back(bLength[i]);
 	unsigned int binaryMask = createBinaryMask();
 	byte const * bMask = reinterpret_cast<byte const *>(&binaryMask);
-	binaryTuple->push_back(bMask[0]);
-	binaryTuple->push_back(bMask[1]);
-	binaryTuple->push_back(bMask[2]);
-	binaryTuple->push_back(bMask[3]);
+	for(unsigned int i=0; i<sizeof(unsigned int); i++)
+		binaryTuple->push_back(bMask[i]);
+	byte const * bSemKey = reinterpret_cast<byte const *>(&semKey);
+	for(unsigned int i=0; i<sizeof(key_t); i++)
+		binaryTuple->push_back(bSemKey[i]);
 	copyBinaryContent(binaryTuple);
 	size = binaryTuple->size();
 	return &(*binaryTuple)[0];
+}
+
+void TupleTemplate::createSemaphore(){
+	semKey = ftok(".", rand()%10000);
+	semId = semget( semKey, 1, IPC_CREAT | IPC_EXCL | 0660 );
+}
+
+void TupleTemplate::initSemaphore(key_t key){
+	semKey = key;
+	semId = semget( key, 1, 0660 );
+}
+
+int TupleTemplate::semWait(int timeout){
+	struct sembuf sem_lock = { 0, -1, 0 };
+	timespec time;
+	time.tv_sec = timeout;
+	time.tv_nsec = 0;
+	return semtimedop(semId, &sem_lock, 1, &time);
 }
 
 unsigned int TupleTemplate::binaryLength(){
