@@ -6,23 +6,24 @@
  */
 
 #include "daemon.h"
+#include "defragmenter.h"
 #include <unistd.h>
-#include <fcntl.h>
 #include <cstdlib>
-#include <thread>
-#include <chrono>
 #include <sys/stat.h>
 
+const char * Daemon::TUPLES_FILE_PATH_ENV = "LINDA_TUPLES";
+const char * Daemon::TUPLE_TEMPLATES_FILE_PATH_ENV = "LINDA_TUPLE_TEMPLATES";
+const char * Daemon::DEFAULT_TUPLES_FILE_PATH = "/tmp/tuples";
+const char * Daemon::DEFAULT_TEMPLATES_FILE_PATH = "/tmp/tuple_templates";
 
-void Daemon::init() {
-	//get file names
-	tupleFilePath = getenv(LINDACOMM_TUPLE_FILE_ENV);
-	queueFilePath = getenv(LINDACOMM_QUEUE_FILE_ENV);
-	if(!(tupleFilePath && queueFilePath)) {
-		exit(1);
-	}
-	//check if files exist
+Daemon::Daemon() {
+	tupleFilePath = getenv(TUPLES_FILE_PATH_ENV);
+	queueFilePath = getenv(TUPLE_TEMPLATES_FILE_PATH_ENV);
 
+	if(tupleFilePath == NULL)
+		tupleFilePath = DEFAULT_TUPLES_FILE_PATH;
+	if(queueFilePath == NULL)
+		queueFilePath = DEFAULT_TEMPLATES_FILE_PATH;
 }
 
 bool Daemon::fileExists(const char* file) {
@@ -65,37 +66,26 @@ void Daemon::daemonize() {
 }
 
 void Daemon::run() {
-	while(runningLibInstances() > 0) {
-		std::this_thread::sleep_for(std::chrono::seconds(SLEEP_SEC));
-		defragment();
+	while((fileExists(tupleFilePath) && fileExists(queueFilePath))) {
+		usleep(SLEEP_SEC * 1000);
+		//tuple
+		int tupleFileDes = open(tupleFilePath, O_RDWR, 0777);
+		lockf(tupleFileDes, F_LOCK, 0);
+		Defragmenter tupleDefragmenter(tupleFileDes);
+		tupleDefragmenter.defragment();
+		lockf(tupleFileDes, F_ULOCK, 0);
+		close(tupleFileDes);
+		//queue
+		int queueFileDes = open(queueFilePath, O_RDWR, 0777);
+		lockf(queueFileDes, F_LOCK, 0);
+		Defragmenter queueDefragmenter(queueFileDes);
+		queueDefragmenter.defragment();
+		lockf(queueFileDes, F_ULOCK, 0);
+		close(queueFileDes);
 	}
 }
 
-int Daemon::runningLibInstances() {
-	//TODO
-	//count results of 'find /tmp | grep lindacomm.pid_*'
-}
 
-void Daemon::defragment() {
-	defragmentTuples();
-	defragmentQueue();
-}
-
-void Daemon::defragmentTuple() {
-	//TODO
-}
-
-void Daemon::defragmentQueue() {
-	//TODO
-}
-
-int main() {
-	Daemon d;
-	d.daemonize();
-	d.init();
-	d.run();
-	return 0;
-}
 
 
 

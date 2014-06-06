@@ -2,6 +2,23 @@
 
 const char * LindaComm::TUPLES_FILE_PATH_ENV = "LINDA_TUPLES";
 const char * LindaComm::TUPLE_TEMPLATES_FILE_PATH_ENV = "LINDA_TUPLE_TEMPLATES";
+const char * LindaComm::DAEMON_PATH_ENV = "LINDA_DAEMON";
+const char * LindaComm::DEFAULT_TUPLES_FILE_PATH = "/tmp/tuples";
+const char * LindaComm::DEFAULT_TEMPLATES_FILE_PATH = "/tmp/tuple_templates";
+const char * LindaComm::DEFAULT_DAEMON_PATH = "/usr/bin/lindacommd";
+
+LindaComm::LindaComm() {
+	//create files
+	closeFile(getFile(TUPLES_FILE_PATH_ENV));
+	closeFile(getFile(TUPLE_TEMPLATES_FILE_PATH_ENV));
+	//wake up daemon
+	const char * daemonCommandName = getenv(DAEMON_PATH_ENV);
+	if(daemonCommandName == NULL) {
+		daemonCommandName = DEFAULT_DAEMON_PATH;
+	}
+	system(daemonCommandName);
+
+}
 
 Tuple * LindaComm::tupleInput(TupleTemplate * tupleTemplate, int timeout){
 	return tupleGet(tupleTemplate, timeout, true);
@@ -240,9 +257,9 @@ int LindaComm::getFile(const char * envName){
 
 const char * LindaComm::getDefaultFileName(const char * envName){
 	if(envName == TUPLES_FILE_PATH_ENV)
-		return std::string("/tmp/linda/tuples").c_str();
+		return DEFAULT_TUPLES_FILE_PATH;
 	else
-		return std::string("/tmp/linda/tuple_templates").c_str();
+		return DEFAULT_TEMPLATES_FILE_PATH;
 }
 
 void LindaComm::closeFile(int fd){

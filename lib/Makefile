@@ -3,27 +3,33 @@
 CXXFLAGS := -Iinclude -Wall -pedantic -std=c++11
 
 all: lib daemon
+	
+daemon: main.o daemon.o defragmenter.o
+	g++ $^ -o daemon.out
 
-lib: lindacomm.a
-
-daemon.out: daemon.o 
-
-lindacomm.a: 
-	ar rcs lindacomm.a lindacomm.out
-
-lindacomm.out: tuple.o
+lib: lindaComm.o tuple.o tupleSerializer.o tupleTemplate.o
+	ar rcs liblindacomm.a $^
 	
 %.o: src/%.cpp
-	g++ -c -o $@ $? $(CXXFLAGS)
-	
+	g++ -c -o $@ $? $(CXXFLAGS)	
 
-install:
-	cp ./include/lindaComm.h /usr/include/lindacomm.h; cp daemon.out /usr/bin/lindacommd
+install: lib daemon move-lib move-daemon
+
+move-lib:
+	cp ./include/lindaComm.h /usr/include/lindacomm.h; \
+	cp ./include/tuple.h /usr/include/; \
+	cp ./include/tupleSerializer.h /usr/include/; \
+	cp ./include/tupleTemplate.h /usr/include/; \
+	cp ./include/parameter.h /usr/include/; \
+	cp liblindacomm.a /usr/lib;
+	
+move-daemon:
+	cp daemon.out /usr/bin/lindacommd	
 
 uninstall:
-	rm /usr/lib/lindaComm.h /usr/lib/lindaComm
+	cd /usr/include; rm lindacomm.h tuple.h tupleTemplate.h tupleSerializer.h parameter.h /usr/lib/liblindacomm.a /usr/bin/lindacommd
 
-reinstall: uninstall clean all install
+reinstall: uninstall clean install
 
 remake: clean all
 
