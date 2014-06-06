@@ -46,8 +46,9 @@ private:
 	std::vector<TupleTemplateArg> params;
 public:
 	TupleTemplate(){ }
+	~TupleTemplate(){ }
 	static TupleTemplate * fromBinary(byte binaryArray[]);
-	byte * toBinary();
+	byte * toBinary(int & size);
 	void add(TupleTemplateArg arg){
 		params.push_back(arg);
 	}

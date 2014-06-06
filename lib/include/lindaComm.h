@@ -15,15 +15,16 @@ public:
 
 // INPUT,READ //
 public:
-	void input(TupleTemplate tupleTemplate, int timeout);
-	void read(TupleTemplate tupleTemplate, int timeout);
+	void tupleInput(TupleTemplate tupleTemplate, int timeout);
+	void tupleRead(TupleTemplate tupleTemplate, int timeout);
 private:
 	bool findTupleMatchingTemplate(TupleTemplate tupleTemplate);
+public:
 	void saveTupleTemplate(TupleTemplate tupleTemplate);
 
 // OUTPUT //
 public:
-	void output(Tuple tuple);
+	void tupleOutput(Tuple tuple);
 private:
 	bool findTemplateMatchingTuple(Tuple tuple);
 public:
@@ -31,8 +32,8 @@ public:
 
 // FS //
 private:
-	int getTuplesFile();
-	int getTupleTemplatesFile();
+	int getFile(const char * envName);
+	void closeFile(int fd);
 };
 
 #endif /* LINDACOMM_H_ */

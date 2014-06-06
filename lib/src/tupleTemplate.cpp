@@ -41,7 +41,7 @@ Quantifier TupleTemplate::getQuantifierFromByte(byte byteQuantifier){
 	return static_cast<Quantifier>(byteQuantifier);
 }
 
-byte * TupleTemplate::toBinary(){
+byte * TupleTemplate::toBinary(int & size){
 	std::vector<byte> * binaryTuple = new std::vector<byte>();
 	unsigned int length = 8 + binaryLength();
 	byte const * bLength = reinterpret_cast<byte const *>(&length);
@@ -56,6 +56,7 @@ byte * TupleTemplate::toBinary(){
 	binaryTuple->push_back(bMask[2]);
 	binaryTuple->push_back(bMask[3]);
 	copyBinaryContent(binaryTuple);
+	size = binaryTuple->size();
 	return &(*binaryTuple)[0];
 }
 

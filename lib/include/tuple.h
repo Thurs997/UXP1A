@@ -10,8 +10,9 @@ private:
 	std::vector<ParameterBase*> params;
 public:
 	Tuple(){ }
+	~Tuple(){ }
 	static Tuple * fromBinary(byte binaryArray[]);
-	byte * toBinary();
+	byte * toBinary(int & tupleSize);
 	void addString(std::string arg){
 		addArg<std::string>(arg);
 	}
@@ -43,7 +44,7 @@ private:
 		return (params[index])->get<T>();
 	}
 	//toBinary
-	int addStringFromBinary(byte binaryArray[], int & position);
+	void addStringFromBinary(byte binaryArray[], int & position);
 	void addIntFromBinary(byte binaryArray[], int & position);
 	void addFloatFromBinary(byte binaryArray[], int & position);
 	//fromBinary

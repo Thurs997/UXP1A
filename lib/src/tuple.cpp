@@ -19,7 +19,7 @@ Tuple * Tuple::fromBinary(byte binaryArray[]){
 	return tuple;
 }
 
-int Tuple::addStringFromBinary(byte binaryArray[], int & position){
+void Tuple::addStringFromBinary(byte binaryArray[], int & position){
 	addString(binToString(binaryArray, position));
 }
 
@@ -31,7 +31,7 @@ void Tuple::addFloatFromBinary(byte binaryArray[], int & position){
 	addFloat(binToFloat(binaryArray, position));
 }
 
-byte * Tuple::toBinary(){
+byte * Tuple::toBinary(int & tupleSize){
 	std::vector<byte> * binaryTuple = new std::vector<byte>();
 	unsigned int length = 8 + binaryLength();
 	byte const * bLength = reinterpret_cast<byte const *>(&length);
@@ -46,6 +46,7 @@ byte * Tuple::toBinary(){
 	binaryTuple->push_back(bMask[2]);
 	binaryTuple->push_back(bMask[3]);
 	copyBinaryContent(binaryTuple);
+	tupleSize = binaryTuple->size();
 	return &(*binaryTuple)[0];
 }
 
