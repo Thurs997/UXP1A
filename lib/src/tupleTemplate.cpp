@@ -66,10 +66,7 @@ byte * TupleTemplate::toBinary(int & size){
 }
 
 void TupleTemplate::createSemaphore(){
-	//timeval time;
-	//gettimeofday(&time, NULL);
 	int sid = syscall(SYS_gettid);
-	//long long microSeconds = (time.tv_sec * 1000000) + time.tv_usec;
 	semKey = ftok(".", sid);
 	semId = semget( semKey, 1, IPC_CREAT | IPC_EXCL | 0660 );
 }
