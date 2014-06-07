@@ -16,7 +16,7 @@ public:
 			delete (*it);
 	}
 	static Tuple * fromBinary(byte binaryArray[]);
-	byte * toBinary(int & tupleSize);
+	std::vector<byte> * toBinary();
 	void addString(std::string arg){
 		addArg<std::string>(arg);
 	}

@@ -61,7 +61,7 @@ public:
 			delete (*it).arg;
 	}
 	static TupleTemplate * fromBinary(byte binaryArray[]);
-	byte * toBinary(int & size);
+	std::vector<byte> * toBinary();
 	int semWait(int timeout);
 	int semPost();
 	key_t getSemKey(){ return semKey; };

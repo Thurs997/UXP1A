@@ -231,18 +231,20 @@ void LindaComm::removeTupleTemplate(TupleTemplate * tupleTemplate){
 void LindaComm::saveTupleTemplate(TupleTemplate * tupleTemplate){
 	int fd = getFile(TUPLE_TEMPLATES_FILE_PATH_ENV);
 	lseek(fd, 0, SEEK_END);
-	int tupleTemplateSize;
-	byte * binaryTupleTemplate = tupleTemplate->toBinary(tupleTemplateSize);
-	write(fd, binaryTupleTemplate, tupleTemplateSize);
+	std::vector<byte> * binaryTupleTemplate = tupleTemplate->toBinary();
+	byte * toWrite = &(*binaryTupleTemplate)[0];
+	write(fd, toWrite, binaryTupleTemplate->size());
+	delete binaryTupleTemplate;
 	closeFile(fd);
 }
 
 int LindaComm::saveTuple(Tuple * tuple){
 	int fd = getFile(TUPLES_FILE_PATH_ENV);
 	lseek(fd, 0, SEEK_END);
-	int tupleSize;
-	byte * binaryTuple = tuple->toBinary(tupleSize);
-	write(fd, binaryTuple, tupleSize);
+	std::vector<byte> * binaryTuple = tuple->toBinary();
+	byte * toWrite = &(*binaryTuple)[0];
+	write(fd, toWrite, binaryTuple->size());
+	delete binaryTuple;
 	return fd;
 }
 

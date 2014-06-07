@@ -31,23 +31,22 @@ void Tuple::addFloatFromBinary(byte binaryArray[], int & position){
 	addFloat(binToFloat(binaryArray, position));
 }
 
-byte * Tuple::toBinary(int & tupleSize){
-	std::vector<byte> * binaryTuple = new std::vector<byte>();
+std::vector<byte> * Tuple::toBinary(){
+	std::vector<byte> binaryTuple = new std::vector<byte>();
 	unsigned int length = 8 + binaryLength();
 	byte const * bLength = reinterpret_cast<byte const *>(&length);
-	binaryTuple->push_back(bLength[0]);
-	binaryTuple->push_back(bLength[1]);
-	binaryTuple->push_back(bLength[2]);
-	binaryTuple->push_back(bLength[3]);
+	binaryTuple.push_back(bLength[0]);
+	binaryTuple.push_back(bLength[1]);
+	binaryTuple.push_back(bLength[2]);
+	binaryTuple.push_back(bLength[3]);
 	unsigned int binaryMask = createBinaryMask();
 	byte const * bMask = reinterpret_cast<byte const *>(&binaryMask);
-	binaryTuple->push_back(bMask[0]);
-	binaryTuple->push_back(bMask[1]);
-	binaryTuple->push_back(bMask[2]);
-	binaryTuple->push_back(bMask[3]);
-	copyBinaryContent(binaryTuple);
-	tupleSize = binaryTuple->size();
-	return &(*binaryTuple)[0];
+	binaryTuple.push_back(bMask[0]);
+	binaryTuple.push_back(bMask[1]);
+	binaryTuple.push_back(bMask[2]);
+	binaryTuple.push_back(bMask[3]);
+	copyBinaryContent(&binaryTuple);
+	return binaryTuple;
 }
 
 unsigned int Tuple::binaryLength(){

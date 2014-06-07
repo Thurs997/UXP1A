@@ -45,7 +45,7 @@ Quantifier TupleTemplate::getQuantifierFromByte(byte byteQuantifier){
 	return static_cast<Quantifier>(byteQuantifier);
 }
 
-byte * TupleTemplate::toBinary(int & size){
+std::vector<byte> * TupleTemplate::toBinary(){
 	if(semKey == -1)
 		createSemaphore();
 	std::vector<byte> * binaryTuple = new std::vector<byte>();
@@ -61,8 +61,7 @@ byte * TupleTemplate::toBinary(int & size){
 	for(unsigned int i=0; i<sizeof(key_t); i++)
 		binaryTuple->push_back(bSemKey[i]);
 	copyBinaryContent(binaryTuple);
-	size = binaryTuple->size();
-	return &(*binaryTuple)[0];
+	return binaryTuple;
 }
 
 void TupleTemplate::createSemaphore(){
