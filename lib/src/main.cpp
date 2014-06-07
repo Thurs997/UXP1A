@@ -10,7 +10,7 @@
 int main() {
 	Daemon d;
 	if(d.isUnique()) {
-		daemon(0, 0);
+		//daemon(0, 0);
 		d.run();
 	}
 	return 0;

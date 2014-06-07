@@ -9,17 +9,22 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstdlib>
-
+ 
 void Defragmenter::defragment() {
 	off_t writerPos, readerPos, endPos;
 	writerPos = readerPos = lseek(fd, 0, SEEK_CUR);
 	endPos = lseek(fd, 0, SEEK_END);
 	do {
-		writerPos = findEmptySpace(writerPos);
-		readerPos = findUsedSpace(writerPos);
+		if(readerPos <= writerPos)
+		{
+			writerPos = findEmptySpace(writerPos);
+			readerPos = findUsedSpace(writerPos);
+		} else {
+			readerPos = findUsedSpace(readerPos);
+		}
 		moveTuple(&readerPos, &writerPos);
-	} while(writerPos < endPos && readerPos < endPos);
-	if(writerPos < endPos) {
+	} while(writerPos != -1 && readerPos != -1 && writerPos < endPos && readerPos < endPos);
+	if(writerPos != -1 && writerPos < endPos) {
 		ftruncate(fd, writerPos);
 	}
 }
@@ -27,6 +32,7 @@ void Defragmenter::defragment() {
 off_t Defragmenter::findEmptySpace(off_t startPos) {
 	int length, mask;
 	off_t endPos;
+	lseek(fd, startPos, SEEK_SET);
 	do{
 		if(read(fd, &length, sizeof(int)) <= 0 || read(fd, &mask, sizeof(int)) <= 0) {
 			return -1;
@@ -35,7 +41,7 @@ off_t Defragmenter::findEmptySpace(off_t startPos) {
 			lseek(fd, length - 2 * sizeof(int), SEEK_CUR);
 		}
 	} while(mask != 0);
-	endPos = lseek(fd, length - 2 * sizeof(int), SEEK_CUR);
+	endPos = lseek(fd, - 2 * sizeof(int), SEEK_CUR);
 	lseek(fd, startPos, SEEK_SET);
 	return endPos;
 }
@@ -43,6 +49,8 @@ off_t Defragmenter::findEmptySpace(off_t startPos) {
 off_t Defragmenter::findUsedSpace(off_t startPos)  {
 	int length, mask;
 	off_t endPos;
+	if(startPos == -1) return -1;
+	lseek(fd, startPos, SEEK_SET);
 	do{
 		if(read(fd, &length, sizeof(int)) <= 0 || read(fd, &mask, sizeof(int)) <= 0) {
 			return -1;
@@ -51,14 +59,18 @@ off_t Defragmenter::findUsedSpace(off_t startPos)  {
 			lseek(fd, length - 2 * sizeof(int), SEEK_CUR);
 		}
 	} while(mask == 0);
-	endPos = lseek(fd, length - 2 * sizeof(int), SEEK_CUR);
+	endPos = lseek(fd, - 2 * sizeof(int), SEEK_CUR);
 	lseek(fd, startPos, SEEK_SET);
 	return endPos;
 }
 
 void Defragmenter::moveTuple(off_t *from, off_t *to) {
-	if(from == to)
+
+	if(*from == *to)
 		return;
+	if(*from == -1 || *to == -1)
+		return;
+
 	int length;
 	lseek(fd, *from, SEEK_SET);
 	read(fd, &length, sizeof(length));

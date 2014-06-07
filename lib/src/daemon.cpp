@@ -10,8 +10,8 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <sys/stat.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/thread/thread.hpp>
+#include <chrono>
+#include <thread>
 
 const char * Daemon::TUPLES_FILE_PATH_ENV = "LINDA_TUPLES";
 const char * Daemon::TUPLE_TEMPLATES_FILE_PATH_ENV = "LINDA_TUPLE_TEMPLATES";
@@ -44,7 +44,7 @@ bool Daemon::isUnique() {
 
 void Daemon::run() {
 	while((fileExists(tupleFilePath) && fileExists(queueFilePath))) {
-		boost::this_thread::sleep(boost::posix_time::seconds(SLEEP_SEC));
+	        std::this_thread::sleep_for (std::chrono::seconds(SLEEP_SEC));
 		//tuple
 		int tupleFileDes = open(tupleFilePath, O_RDWR, 0777);
 		lockf(tupleFileDes, F_LOCK, 0);
