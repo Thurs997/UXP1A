@@ -4,14 +4,20 @@ CXXFLAGS := -Iinclude -Wall -pedantic -std=c++11 -llindacomm
 
 app: test.out
 
-test.out: main.o classA.o classB.o
-	g++ $^ -o $@
+test.out: main.o
+	g++ $^ -o $@ -llindacomm
 	
 %.o: src/%.cpp
 	g++ -c -o $@ $? $(CXXFLAGS)
 
-test:
+single-test:
 	./test.out
 
-clear:
-	rm *.o *.out
+test:
+	./test.out 1 & ./test.out 2 &
+
+memory-leak-check:
+	valgrind --leak-check=full ./test.out > out.txt 2>&1	
+
+clean:
+	rm *.o *.out out.txt
