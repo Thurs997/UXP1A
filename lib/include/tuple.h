@@ -10,7 +10,11 @@ private:
 	std::vector<ParameterBase*> params;
 public:
 	Tuple(){ }
-	~Tuple(){ }
+	~Tuple(){
+		std::vector<ParameterBase *>::iterator it = params.begin();
+		for(; it != params.end(); ++it)
+			delete (*it);
+	}
 	static Tuple * fromBinary(byte binaryArray[]);
 	byte * toBinary(int & tupleSize);
 	void addString(std::string arg){

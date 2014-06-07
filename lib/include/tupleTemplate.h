@@ -55,7 +55,11 @@ private:
 public:
 	TupleTemplate() : semKey(-1), semId(-1) { }
 	TupleTemplate(key_t key){ initSemaphore(key); }
-	~TupleTemplate(){ }
+	~TupleTemplate(){
+		std::vector<TupleTemplateArg>::iterator it = params.begin();
+		for(; it != params.end(); ++it)
+			delete (*it).arg;
+	}
 	static TupleTemplate * fromBinary(byte binaryArray[]);
 	byte * toBinary(int & size);
 	int semWait(int timeout);
