@@ -6,10 +6,12 @@
  */
 
 #include "daemon.h"
-
+#include <unistd.h>
 int main() {
 	Daemon d;
-	d.daemonize();
-	d.run();
+	if(d.isUnique()) {
+		daemon(0, 0);
+		d.run();
+	}
 	return 0;
 }

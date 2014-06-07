@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <sys/stat.h>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread/thread.hpp>
 
 const char * Daemon::TUPLES_FILE_PATH_ENV = "LINDA_TUPLES";
 const char * Daemon::TUPLE_TEMPLATES_FILE_PATH_ENV = "LINDA_TUPLE_TEMPLATES";
@@ -31,43 +33,18 @@ bool Daemon::fileExists(const char* file) {
     return (stat(file, &buf) == 0);
 }
 
-void Daemon::daemonize() {
-    int pid = fork();
-    if (pid < 0)
-        exit(1); // fork failed
-    if (pid > 0)
-        exit(0); // still in parent process, so quit
-
-    // in child process, obtain new session and process group at the same time
-    setsid();
-
-    int devnull = open("/dev/null", O_RDWR);
-
-    // close stdin stdout and stderr which are connected to current terminal
-    close(0);
-    close(1);
-    close(2);
-
-    // attach stdin stdout and stderr to /dev/null
-    // by dup-ing the devnull descriptor
-    dup2(devnull, 0);
-    dup2(devnull, 1);
-    dup2(devnull, 2);
-
-    // get rid of devnull
-    close(devnull);
-
-    // open a lockfile
-    int lockfd = open(LOCK_FILE, O_RDWR|O_CREAT, 0640);
+bool Daemon::isUnique() {
+    lockfd = open(LOCK_FILE, O_RDWR|O_CREAT, 0640);
     if (lockfd < 0)
-        exit(1); // Error opening the file
+        return false;
     if (lockf(lockfd, F_TLOCK, 0) < 0) // do a trylock
-        exit(0); // if already locked or error, exit (ensures a single process in the system)
+        return false;
+    return true;
 }
 
 void Daemon::run() {
 	while((fileExists(tupleFilePath) && fileExists(queueFilePath))) {
-		usleep(SLEEP_SEC * 1000);
+		boost::this_thread::sleep(boost::posix_time::seconds(SLEEP_SEC));
 		//tuple
 		int tupleFileDes = open(tupleFilePath, O_RDWR, 0777);
 		lockf(tupleFileDes, F_LOCK, 0);
@@ -83,6 +60,11 @@ void Daemon::run() {
 		lockf(queueFileDes, F_ULOCK, 0);
 		close(queueFileDes);
 	}
+}
+
+Daemon::~Daemon() {
+	lockf(lockfd, F_ULOCK, 0);
+	close(lockfd);
 }
 
 

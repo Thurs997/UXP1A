@@ -16,9 +16,11 @@
 class Daemon {
 public:
 	Daemon();
-	void daemonize();
 	void run();
+	bool isUnique();
+	~Daemon();
 private:
+	int lockfd;
 	static const char * TUPLES_FILE_PATH_ENV;
 	static const char * TUPLE_TEMPLATES_FILE_PATH_ENV;
 	static const char * DEFAULT_TUPLES_FILE_PATH;

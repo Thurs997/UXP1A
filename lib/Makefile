@@ -5,7 +5,7 @@ CXXFLAGS := -Iinclude -Wall -pedantic -std=c++11
 all: lib daemon
 	
 daemon: main.o daemon.o defragmenter.o
-	g++ $^ -o daemon.out
+	g++ $^ -o daemon.out -lboost_thread
 
 lib: lindaComm.o tuple.o tupleSerializer.o tupleTemplate.o
 	ar rcs liblindacomm.a $^
