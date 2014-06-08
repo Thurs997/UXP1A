@@ -84,8 +84,10 @@ Tuple * LindaComm::matchTupleToTupleTemplate(int fd, unsigned int tupleSize, Tup
 	Tuple * tuple = Tuple::fromBinary(binaryTuple);
 	free(binaryTuple);
 	for(int i=0; i<tuple->size(); ++i){
-		if(!matchTupleFieldToTupleTemplateField(tuple, tupleTemplate, i))
+		if(!matchTupleFieldToTupleTemplateField(tuple, tupleTemplate, i)){
+			delete tuple;
 			return NULL;
+		}
 	}
 	if(remove){
 		lseek(fd, (off_t) (4 - ((int) tupleSize)), SEEK_CUR);
@@ -198,13 +200,16 @@ bool LindaComm::matchTupleTemplateToTuple(int fd, unsigned int size, Tuple * tup
 	TupleTemplate * tupleTemplate = TupleTemplate::fromBinary(binaryTupleTemplate);
 	free(binaryTupleTemplate);
 	for(int i=0; i<tuple->size(); ++i){
-		if(!matchTupleFieldToTupleTemplateField(tuple, tupleTemplate, i))
+		if(!matchTupleFieldToTupleTemplateField(tuple, tupleTemplate, i)){
+			delete tupleTemplate;
 			return false;
+		}
 	}
 	lseek(fd, (off_t) (4 - ((int) size)), SEEK_CUR);
 	byte zero[4] = {'\0', '\0', '\0', '\0'};
 	write(fd, zero, 4);
 	tupleTemplate->semPost();
+	delete tupleTemplate;
 	return true;
 }
 
