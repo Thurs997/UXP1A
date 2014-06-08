@@ -29,16 +29,16 @@ int main(int argc, char *argv[]){
 		process = 1;
 	bool success = true;
 	LindaComm *lc = new LindaComm();
-//	if(!Test1(lc))
-//		success = false;
-//	if(!Test2(lc))
-//		success = false;
-	if(!Test3(lc))
+	if(!Test1(lc))
 		success = false;
-//	if(!Test4(lc))
-//		success = false;
-//	if(!Test5(lc))
-//		success = false;
+	if(!Test2(lc))
+		success = false;
+      	if(!Test3(lc))
+      		success = false;
+	if(!Test4(lc))
+		success = false;
+	if(!Test5(lc))
+		success = false;
 	delete lc;
 	if(success)
 		printf("%d Wszystkie testy zakończone sukcesem\n", process);
@@ -73,14 +73,8 @@ bool Test1(LindaComm *lc) {
 	delete tuple;
 	delete tupleTemplate;
 	tuple = new Tuple();
-	tuple->addInteger(5);
-	tuple->addInteger(5);
-	tuple->addInteger(5);
-	tuple->addInteger(5);
-	tuple->addInteger(5);
-	tuple->addInteger(5);
-	tuple->addInteger(5);
-	tuple->addInteger(5);
+	for(int i = 0; i < 8; i++)
+		tuple->addInteger(5);
 	lc->tupleOutput(tuple);
 	tupleTemplate = new TupleTemplate();
 	tupleTemplate->add(TupleTemplateArg::createFromInteger(0, ANY));
@@ -215,7 +209,7 @@ bool Test4(LindaComm *lc) {
 
 bool Test5(LindaComm *lc) {
 	printf("%d ***** TEST 5 *****\n",process);
-	int tuplesNumber = 5000;
+	int tuplesNumber = 1000;
 	bool success = true;
 	double seconds;
 	time_t timer = time(NULL);
