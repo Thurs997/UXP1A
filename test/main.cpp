@@ -3,16 +3,23 @@
 #include <string>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
+#include <ctime>
 
 int process;
 
 using namespace std;
 
+ifstream::pos_type filesize(const char *filename);
 void simpleTest(LindaComm *lc);
-void generateTuples(LindaComm *lc, int count);
-int readTuples(LindaComm *lc, int count);
-int inputTuples(LindaComm *lc, int count);
-void Test1(LindaComm *lc);
+void generateTuples(LindaComm *lc, int count, bool verbose = true);
+int readTuples(LindaComm *lc, int count, Quantifier q, bool verbose = true, int it = 1);
+int inputTuples(LindaComm *lc, int count, Quantifier q, bool verbose = true, int it = 1);
+bool Test1(LindaComm *lc);
+bool Test2(LindaComm *lc);
+bool Test3(LindaComm *lc);
+bool Test4(LindaComm *lc);
+bool Test5(LindaComm *lc);
 
 int main(int argc, char *argv[]){
 
@@ -20,42 +27,222 @@ int main(int argc, char *argv[]){
 		process =  atoi(argv[1]);
 	else 
 		process = 1;
+	bool success = true;
 	LindaComm *lc = new LindaComm();
-//	simpleTest(lc);
-	Test1(lc);
+//	if(!Test1(lc))
+//		success = false;
+//	if(!Test2(lc))
+//		success = false;
+	if(!Test3(lc))
+		success = false;
+//	if(!Test4(lc))
+//		success = false;
+//	if(!Test5(lc))
+//		success = false;
 	delete lc;
-	
-	cout << "KONIEC PROCESU " << process <<'\n';
+	if(success)
+		printf("%d Wszystkie testy zakończone sukcesem\n", process);
+	else
+		printf("%d Jeden lub wiecej testow nie zakonczylo sie sukcesem\n", process);
+	printf("%d KONIEC PROCESU\n", process);
 
 	return 0;
 }
 
-void Test1(LindaComm *lc) {
+bool Test1(LindaComm *lc) {
+	printf("%d ***** TEST 1 *****\n",process);
+	bool success = true;
+	Tuple *tuple = new Tuple();
+	for(int i = 0; i < 16; i++)
+		tuple->addInteger(i);
+	lc->tupleOutput(tuple);
+	printf("%d Stworzono ktotke z 16 parametrami\n", process);
+	TupleTemplate *tupleTemplate = new TupleTemplate();
+	for(int i = 0; i < 16; i++)
+		tupleTemplate->add(TupleTemplateArg::createFromInteger(0, ANY));
+	Tuple *foundTuple = lc->tupleInput(tupleTemplate, 1);
 
-	int tuplesNumber = 50;
-	generateTuples(lc, tuplesNumber);
-	if(readTuples(lc, tuplesNumber) == tuplesNumber)
-		printf("Udalo sie wczytac wszystkie krotki\n");
-	else
-		printf("Nie udalo sie wczytac wszystkich krotek\n");
-	if(inputTuples(lc, tuplesNumber) == tuplesNumber)
-		printf("Udalo sie wczytac i usunac wszystkie krotki\n");
-	else
-		printf("Nie udalo sie wczytac i usunac wszystkich krotek\n");
-	if(readTuples(lc, 1) == 0)
-		printf("Plik wymiany jest pusty\n");
-	else
-		printf("Plik wymiany nie jest pusty\n");
-		
+	if(foundTuple != NULL)
+		printf("%d Pobrano krotke z 16 parametrami\n", process);
+	else {
+		success = false;
+		printf("%d Nie mozna znalezc krotki\n", process);
+	}
+
+	delete foundTuple;
+	delete tuple;
+	delete tupleTemplate;
+	tuple = new Tuple();
+	tuple->addInteger(5);
+	tuple->addInteger(5);
+	tuple->addInteger(5);
+	tuple->addInteger(5);
+	tuple->addInteger(5);
+	tuple->addInteger(5);
+	tuple->addInteger(5);
+	tuple->addInteger(5);
+	lc->tupleOutput(tuple);
+	tupleTemplate = new TupleTemplate();
+	tupleTemplate->add(TupleTemplateArg::createFromInteger(0, ANY));
+	tupleTemplate->add(TupleTemplateArg::createFromInteger(5, EQUAL));
+	tupleTemplate->add(TupleTemplateArg::createFromInteger(6, LESS));
+	tupleTemplate->add(TupleTemplateArg::createFromInteger(4, MORE));
+	tupleTemplate->add(TupleTemplateArg::createFromInteger(5, LESS_OR_EQUAL));
+	tupleTemplate->add(TupleTemplateArg::createFromInteger(5, MORE_OR_EQUAL));
+	tupleTemplate->add(TupleTemplateArg::createFromInteger(6, LESS_OR_EQUAL));
+	tupleTemplate->add(TupleTemplateArg::createFromInteger(4, MORE_OR_EQUAL));
+
+	foundTuple = lc->tupleInput(tupleTemplate, 1);
+	if(foundTuple != NULL)
+		printf("%d Udalo sie pobrac krotke spelniajaca kryteria\n", process);
+	else {
+		success = false;
+		printf("%d Nie mozna znalezc krotki\n", process);
+	}
+
+	delete tuple;
+	delete tupleTemplate;
+	delete foundTuple;	
+
+	if(success) {
+		printf("%d Test1 zakończony sukcesem!\n", process);
+	}
+	else {
+		printf("%d Test1 zakończony niepowodzeniem\n", process);
+	}
+	return success;
 }
 
-void generateTuples(LindaComm *lc, int count) {
-//	cout << "** Generowanie krotek: " << count <<" **\n";
-	printf("** Generowanie krotek: %d ** Proces: %d\n", count, process);
+bool Test2(LindaComm *lc) {
+
+	printf("%d ***** TEST 2 *****\n",process);
+	int tuplesNumber = 50;
+	bool success = true;
+	generateTuples(lc, tuplesNumber);
+	if(readTuples(lc, tuplesNumber, EQUAL) == tuplesNumber)
+		printf("%d Udalo sie wczytac wszystkie krotki\n", process);
+	else {
+		success = false;
+		printf("%d Nie udalo sie wczytac wszystkich krotek\n", process);
+	}
+	if(inputTuples(lc, tuplesNumber, EQUAL) == tuplesNumber)
+		printf("%d Udalo sie wczytac i usunac wszystkie krotki\n", process);
+	else {
+		success = false;
+		printf("%d Nie udalo sie wczytac i usunac wszystkich krotek\n", process);
+	}
+	if(readTuples(lc, 1, ANY) == 0)
+		printf("%d Plik wymiany jest pusty\n", process);
+	else {
+		success = false;
+		printf("%d Plik wymiany nie jest pusty\n", process);
+	}
+	if(success) {
+		printf("%d Test2 zakończony sukcesem!\n", process);
+	}
+	else {
+		printf("%d Test2 zakończony niepowodzeniem\n", process);
+	}
+	return success;		
+}
+
+bool Test3(LindaComm *lc) {
+	printf("%d ***** TEST 3 *****\n",process);
+	int tuplesNumber = 100;
+	bool success = true;
+	int fileSize1, fileSize2;
+	generateTuples(lc, tuplesNumber);
+	fileSize1 = (int)filesize("/tmp/tuples");
+	printf("%d Rozmiar pliku po wygenerowaniu krotek: %d\n", process, fileSize1);	
+	
+	if(inputTuples(lc, tuplesNumber, EQUAL, true, 2) == tuplesNumber/2)
+		printf("%d Udalo sie wczytac i usunac wszystkie krotki\n", process);
+	else {
+		success = false;
+		printf("%d Nie udalo sie wczytac i usunac wszystkich krotek\n", process);
+	}
+	sleep(5);
+	fileSize2 = (int)filesize("/tmp/tuples");
+	printf("%d Rozmiar pliku po usunieciu polowy krotek: %d\n", process, fileSize2);
+	printf("%d Rozmiar pliku przed: %d Rozmiar pliku po: %d\n", process, fileSize1, fileSize2);
+
+	if(fileSize2 >= fileSize1)
+		success = false;
+	
+	if(inputTuples(lc, tuplesNumber/2, ANY) == tuplesNumber/2)
+		printf("%d Udalo sie wczytac i usunac wszystkie krotki\n", process);
+	else {
+		success = false;
+		printf("%d Nie udalo sie wczytac i usunac wszystkich krotek\n", process);
+	}
+	if(success) {
+		printf("%d Test3 zakończony sukcesem!\n", process);
+	}
+	else {
+		printf("%d Test3 zakończony niepowodzeniem\n", process);
+	}
+
+	return success;
+}
+bool Test4(LindaComm *lc) {
+
+	printf("%d ***** TEST 4 *****\n",process);
+	int tuplesNumber = 50;
+	bool success = true;
+	if(fork())
+		generateTuples(lc, tuplesNumber*2);
+	else {
+		process++;
+		if(!fork())
+			process++;
+		printf("%d Stworzono proces potomny\n", process);
+		sleep(3);
+		if(inputTuples(lc, tuplesNumber, ANY) == tuplesNumber)
+			printf("%d Udalo sie wczytac i usunac wszystkie krotki\n", process);
+		else {
+			success = false;
+			printf("%d Nie udalo sie wczytac i usunac wszystkich krotek\n", process);
+		}
+	}
+	if(success) {
+		printf("%d Test4 zakończony sukcesem!\n", process);
+	}
+	else {
+		printf("%d Test4 zakończony niepowodzeniem\n", process);
+	}
+	return success;	
+}
+
+bool Test5(LindaComm *lc) {
+	printf("%d ***** TEST 5 *****\n",process);
+	int tuplesNumber = 5000;
+	bool success = true;
+	double seconds;
+	time_t timer = time(NULL);
+	generateTuples(lc, tuplesNumber, false);
+	if(inputTuples(lc, tuplesNumber, ANY, false) == tuplesNumber)
+		printf("%d Udalo sie wczytac i usunac wszystkie krotki\n", process);
+	else {
+		success = false;
+		printf("%d Nie udalo sie wczytac i usunac wszystkich krotek\n", process);
+	}
+	seconds = difftime(time(NULL), timer);
+	if(success) {
+		printf("%d Test5 zakończony sukcesem! Czas testu: %f\n", process, seconds);
+	}
+	else {
+		printf("%d Test5 zakończony niepowodzeniem. Czas testu %f\n", process, seconds);
+	}
+	return success;
+}
+
+void generateTuples(LindaComm *lc, int count, bool verbose) {
+	printf("%d ** Generowanie krotek: %d **\n", process, count);
 	Tuple *tuple;
 
 	for(int i = 0; i < count; i++) {
-		printf("GENEROWANA KROTKA:\ttestString\t%d\t%d\n", i, process);
+		if(verbose)
+			printf("%d GENEROWANA KROTKA:\ttestString\t%d\t%d\n",process, i, process);
 		tuple = new Tuple();
 		tuple->addString("testString");
 		tuple->addInteger(i);
@@ -66,19 +253,18 @@ void generateTuples(LindaComm *lc, int count) {
 
 }
 
-int readTuples(LindaComm *lc, int count) {
-	printf("** Przegladanie krotek bez usuwania: %d ** Proces: %d\n", count, process);
-//	cout << "** Przegladanie krotek bez usuwania: " << count <<" **\n";
+int readTuples(LindaComm *lc, int count, Quantifier q, bool verbose, int it) {
+	printf("%d ** Przegladanie krotek bez usuwania: %d **\n",process , count/it);
 	string text;
 	int number, processNumber, counter = 0;
 	Tuple *tuple;
 	TupleTemplate *tupleTemplate;
 
-	for(int i = 0; i < count; i++) {
+	for(int i = 0; i < count; i += it) {
 		tupleTemplate = new TupleTemplate();
-		tupleTemplate->add(TupleTemplateArg::createFromString("testString", EQUAL));
-		tupleTemplate->add(TupleTemplateArg::createFromInteger(i, EQUAL));
-		tupleTemplate->add(TupleTemplateArg::createFromInteger(process, EQUAL));
+		tupleTemplate->add(TupleTemplateArg::createFromString("testString", q));
+		tupleTemplate->add(TupleTemplateArg::createFromInteger(i, q));
+		tupleTemplate->add(TupleTemplateArg::createFromInteger(process, q));
 		tuple = lc->tupleRead(tupleTemplate, 5);
 		if(tuple != NULL) {
 			counter++;
@@ -86,29 +272,30 @@ int readTuples(LindaComm *lc, int count) {
 			number = tuple->getInteger(1);
 			processNumber = tuple->getInteger(2);
 			delete tuple;
-			printf("POBRANA KROTKA:\t%s\t%d\t%d\n", text.c_str(), number, processNumber);
+			if(verbose)
+				printf("%d POBRANA KROTKA:\t%s\t%d\t%d\n",process, text.c_str(), number, processNumber);
 		}
 		else {
-			printf("Nie udalo sie pobrac krotki:\ttestString\t%d\t%d\n", i, process);
+			if(verbose)
+				printf("%d Nie udalo sie pobrac krotki:\ttestString\t%d\t%d\n",process, i, process);
 		}
 		delete tupleTemplate;
 	}
 	return counter;
 }
 
-int inputTuples(LindaComm *lc, int count) {
-	printf("** Przegladanie krotek z usuwaniem: %d ** Proces: %d\n", count, process);
-//	cout << "** Przegladanie krotek z usuwaniem: " << count <<" **\n";
+int inputTuples(LindaComm *lc, int count, Quantifier q, bool verbose, int it) {
+	printf("%d ** Przegladanie krotek z usuwaniem: %d **\n", process, count/it);
 	string text;
 	int number, processNumber, counter = 0;
 	Tuple *tuple;
 	TupleTemplate *tupleTemplate;
 
-	for(int i = 0; i < count; i++) {
+	for(int i = 0; i < count; i += it) {
 		tupleTemplate = new TupleTemplate();
-		tupleTemplate->add(TupleTemplateArg::createFromString("testString", EQUAL));
-		tupleTemplate->add(TupleTemplateArg::createFromInteger(i, EQUAL));
-		tupleTemplate->add(TupleTemplateArg::createFromInteger(process, EQUAL));
+		tupleTemplate->add(TupleTemplateArg::createFromString("testString", q));
+		tupleTemplate->add(TupleTemplateArg::createFromInteger(i, q));
+		tupleTemplate->add(TupleTemplateArg::createFromInteger(process, q));
 		tuple = lc->tupleInput(tupleTemplate, 5);
 		if(tuple != NULL) {
 			counter++;
@@ -116,10 +303,12 @@ int inputTuples(LindaComm *lc, int count) {
 			number = tuple->getInteger(1);
 			processNumber = tuple->getInteger(2);
 			delete tuple;
-			printf("USUWANA KROTKA:\t%s\t%d\t%d\n", text.c_str(), number, processNumber);
+			if(verbose)
+				printf("%d USUWANA KROTKA:\t%s\t%d\t%d\n",process , text.c_str(), number, processNumber);
 		}
 		else {
-			printf("Nie udalo sie pobrac krotki:\ttestString\t%d\t%d\n", i, process);
+			if(verbose)
+				printf("%d Nie udalo sie pobrac krotki:\ttestString\t%d\t%d\n",process, i, process);
 		}
 		delete tupleTemplate;
 	}
@@ -171,4 +360,10 @@ void simpleTest(LindaComm *lc) {
 	delete tt;
 	delete ttMatchingTuple;
 	delete foundTuple;
+}
+
+ifstream::pos_type filesize(const char *filename) {
+	ifstream in(filename, ifstream::in | ifstream::binary);
+	in.seekg(0, ifstream::end);
+	return in.tellg();
 }

@@ -10,11 +10,8 @@ test.out: main.o
 %.o: src/%.cpp
 	g++ -c -o $@ $? $(CXXFLAGS)
 
-single-test:
-	./test.out
-
 test:
-	./test.out 1 & ./test.out 2 &
+	./test.out 
 
 memory-leak-check:
 	valgrind --leak-check=full ./test.out > out.txt 2>&1	
